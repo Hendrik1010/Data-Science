@@ -1,0 +1,78 @@
+---
+title: "Hausaufgabe Nr. 1 Fenrich"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+BX_Book_Ratings <- read_delim("BX-Book-Ratings.csv", 
+    ";", escape_double = FALSE, col_types = cols(`Book-Rating` = col_number()), 
+    trim_ws = TRUE)
+BX_Books <- read_delim("BX-Books.csv", 
+    ";", escape_double = FALSE, trim_ws = TRUE)
+BX_Users <- read_delim("BX-Users.csv", 
+    ";", escape_double = FALSE, col_types = cols(Age = col_number()), 
+    trim_ws = TRUE)
+```
+
+
+Books Tabelle um nicht benötigte Zeilen bereinigt und Publisher mit nur wenigen Büchern werden entfernt
+
+```{r}
+Books <- BX_Books %>%
+  group_by(Publisher) %>%
+  summarise(Anzahl = n()) %>%
+  arrange(desc(Anzahl)) %>%
+  filter(Anzahl > 49) %>% 
+  left_join(BX_Books) %>%
+  select(ISBN,`Book-Title`,`Book-Author`,`Year-Of-Publication`,Publisher, Anzahl)
+```
+
+#Aufgabe 1
+Welche Bücher sind am besten bewertet 
+
+```{r}
+Ratings <- BX_Book_Ratings %>%
+  group_by(ISBN) %>%
+  filter(`Book-Rating` > 0) %>%
+  summarise(Durchschnittsbewertung = mean(`Book-Rating`), AnzahlBewertungen = n()) %>%
+  arrange(desc(Durchschnittsbewertung)) %>%
+  left_join(Books) %>%
+  filter(`Book-Title` > 0)
+```
+
+#Aufgabe 2
+Alle Bücher unter 50 Bewertungen werden rausgenommen, um zu schauen ob Anzahl der Bewertungen mit reinspielen soll
+
+```{r}
+Best_Books <- Ratings %>%
+  filter(AnzahlBewertungen > 49)
+```
+
+#Aufgabe 3
+Welche Autoren sind am besten bewertet mit einer Mindestanzahl von 30 Bücher
+
+```{r}
+Author <- Ratings %>%
+  group_by(`Book-Author`) %>%
+  summarise(Autorenbewertung = mean(`Durchschnittsbewertung`), Anzahl_Bücher = n()) %>%
+  arrange(desc(Autorenbewertung)) %>%
+  filter(`Anzahl_Bücher` > 29)
+```
+
+#Aufgabe 4
+Welcher Verlag hat die besten Bücher
+
+```{r}
+Publisher<- Ratings %>%
+  group_by(Publisher) %>%
+  summarise(Verlagbewertung = mean(`Durchschnittsbewertung`), AnzahlBücher = n()) %>%
+  arrange(desc(Verlagbewertung)) %>%
+  filter(`AnzahlBücher` > 49)
+```
+
+
+
