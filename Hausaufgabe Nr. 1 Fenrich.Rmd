@@ -74,6 +74,7 @@ Publisher<- Ratings %>%
   filter(`AnzahlBücher` > 49)
 ```
 
+<<<<<<< HEAD
 #Aufgabe 5
 Lineare Beziehung zwischen Anzahl Bücher pro Publisher und Anzahl Ratings herausfinden
 
@@ -133,4 +134,7 @@ Adjusted R Squared ist ca. 0 -> somit ist keine Abhängigkeit zu erkennen.
 ```{r}
 summary(fit_2)
 ```
+=======
+
+>>>>>>> 9403d8e84cb2836a27228101006bff5a0ab8b511
 
