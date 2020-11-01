@@ -74,5 +74,63 @@ Publisher<- Ratings %>%
   filter(`AnzahlBücher` > 49)
 ```
 
+#Aufgabe 5
+Lineare Beziehung zwischen Anzahl Bücher pro Publisher und Anzahl Ratings herausfinden
 
+Tabelle erstellt, in der Anzahl Berertungen und Anzahl Bücher pro Publisher dargestellt werden. 
+
+```{r}
+ Publisher_NumberRating <- Ratings %>%
+  left_join(Books) %>%
+  group_by(Publisher) %>%
+  summarise(Anzahl_Verlagsbewertungen = sum(AnzahlBewertungen), Anzahl_Bücher = n()) %>%
+  select(Anzahl_Verlagsbewertungen,Anzahl_Bücher) %>%
+  filter(`AnzahlBücher` > 49)
+```
+
+```{r}
+fit <- lm(Publisher_NumberRating$Anzahl_Bücher~Publisher_NumberRating$Anzahl_Verlagsbewertungen)
+```
+
+Adjusted R-squared bei 0,79 -> deutet auf eine hohe Abhängigkeit hin
+
+```{r}
+summary(fit)
+```
+
+Grafische Darstellung der Abhängigkeit
+
+```{r}
+plot(Publisher_NumberRating)
+abline(fit)
+```
+
+#Aufgabe 6
+Haben ältere Bücher mehr Bewertungen?
+
+Tabelle mit Erscheinungsjahr des Buches und Anzahl Bewertungen erstellen
+
+```{r}
+Year_NumberOfEvaluations <- Best_Books %>%
+  select(`Year-Of-Publication`,AnzahlBewertungen) %>%
+  filter(`Year-Of-Publication` > 1000)
+```
+
+
+```{r}
+fit_2 <- lm(Year_NumberOfEvaluations$AnzahlBewertungen~Year_NumberOfEvaluations$`Year-Of-Publication`)
+```
+
+Darstellung des Ergebnisses
+
+```{r}
+plot(Year_NumberOfEvaluations)
+abline(fit_2)
+```
+
+Adjusted R Squared ist ca. 0 -> somit ist keine Abhängigkeit zu erkennen.
+
+```{r}
+summary(fit_2)
+```
 
