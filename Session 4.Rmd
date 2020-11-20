@@ -87,6 +87,8 @@ NA rausgenommen
 titanic.df <- na.omit(titanic.df)
 ```
 
+#Support Vector Machines
+
 Training und Testing Dateien erstellt
 
 ```{r}
