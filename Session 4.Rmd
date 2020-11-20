@@ -203,6 +203,11 @@ pROC_obj <- roc(model.results.dt$survived,model.results.dt$`1`,
 
 #Unterschiede der Performance und Erklärung
 
-Durch die Erhöhung der Anzahl der Variablen ist nun der Vector das beste Modell. Der AUC Wert ist in der Vector Variante nun am geringsten. Die Anzahl an Daten scheint für die Berechnung mit dem Vector Modell auszureichen. Naive Bayes ist durch die Hinzunahme der weiteren beiden Variablen (Dummy variablen) in der Berechnung nicht mehr auf der Genauigkeit von der Berechnung ohne die beiden Variablen. Der Decision Tree ist in der Transparenz zwar besser, aber der AUC Wert zeigt ebenfalls durch die Hinzunahme der weiteren Variablen ein deutlich schlechteres Ergebnis, als das Vector Model. Somit ist das Vector Model zu bevorzugen. 
+Durch die Erhöhung der Anzahl der Variablen ist nun der Vector das beste Modell. Der AUC Wert ist in der Vector
+Variante nun am geringsten. Die Anzahl an Daten scheint für die Berechnung mit dem Vector Modell auszureichen. 
+Naive Bayes ist durch die Hinzunahme der weiteren beiden Variablen (Dummy variablen) in der Berechnung nicht mehr 
+auf der Genauigkeit von der Berechnung ohne die beiden Variablen. Der Decision Tree ist in der Transparenz zwar 
+besser, aber der AUC Wert zeigt ebenfalls durch die Hinzunahme der weiteren Variablen ein deutlich schlechteres 
+Ergebnis, als das Vector Model. Somit ist das Vector Model zu bevorzugen. 
 
 
