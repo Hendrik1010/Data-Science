@@ -1,0 +1,206 @@
+---
+title: "Session 4"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(caret)
+library(e1071)
+library(pROC)
+```
+
+```{r}
+library(readr)
+titanic <- read_delim("titanic.csv", ";", 
+    escape_double = FALSE, trim_ws = TRUE)
+View(titanic)
+```
+
+```{r}
+Titanic_All <- titanic 
+write_csv(Titanic_All, "Titanic_All.csv")
+```
+
+```{r}
+Titanic_All %>% 
+  group_by(sex) %>%
+  summarise(GenderCount = n())
+```
+
+Wie viele Überlebten - 0=nicht überlebt, 1=überlebt
+
+```{r}
+Titanic_All %>%
+  group_by(survived, sex) %>%
+  summarise(SurviveCount =n())
+```
+
+```{r}
+Titanic_All %>%
+  group_by(pclass) %>%
+  summarise(ClassCount = n())
+```
+
+```{r}
+Titanic_All %>%
+  group_by(embarked) %>%
+  summarise(EmbarkedCount = n())
+```
+
+```{r}
+Titanic_All
+```
+
+Hälfte aller Kinder ist gestorben ca.
+
+```{r}
+Titanic_All %>%
+  mutate(age_new = as.numeric(age)) %>%
+  filter(age_new < 19) %>%
+  group_by(survived) %>%
+  summarise(SurvivedCountK = n())
+```
+
+Titanic Dataframe erstellt
+
+```{r}
+titanic.df <- Titanic_All %>%
+  select(survived,pclass,age,sex,embarked)
+```
+
+Daten erstellt für Analyse
+
+```{r}
+titanic.df <- titanic.df %>%
+  mutate(sex = ifelse(sex == "female",1,0)) %>%
+  mutate(age = as.numeric(str_replace(age,",","."))) %>%
+  mutate(Child = ifelse(age < 11,1,0)) %>%
+  mutate(Embarked_S = ifelse(embarked == "S",1,0)) %>%
+  mutate(Embarked_C = ifelse(embarked == "C",1,0)) %>%
+  select(survived,pclass,sex,Child,Embarked_S,Embarked_C)
+```
+
+NA rausgenommen
+
+```{r}
+titanic.df <- na.omit(titanic.df)
+```
+
+Training und Testing Dateien erstellt
+
+```{r}
+set.seed(115)
+inTrain <- createDataPartition(
+  y=titanic.df$survived,
+  p=.8,
+  list = FALSE)
+training <- titanic.df[ inTrain,]
+testing <- titanic.df[-inTrain,]
+```
+
+
+```{r}
+model <- svm(survived ~ ., data = training)
+summary(model)
+pred <- predict(model, testing[,-1], probability = FALSE)
+```
+
+
+```{r}
+(test.results <- cbind(pred, testing))
+```
+
+
+```{r}
+test.results2 <- test.results %>%
+  mutate(pred = ifelse(pred>=0.5,1,0))
+table(test.results2$pred, testing$survived)
+```
+
+
+```{r}
+pROC_obj <- roc(test.results$survived, test.results$pred,
+            smoothed = TRUE,
+            ci=TRUE, ci.alpha=0.9, stratified=FALSE,
+            plot=TRUE, auc.polygon=TRUE, max.auc.polygon=TRUE, grid=TRUE,
+            print.auc=TRUE, show.thres=TRUE)
+```
+
+# Naive Bayes
+
+```{r}
+my_training <- training %>%
+  mutate(survived = as.factor(survived))%>%
+  mutate(sex = as.factor(sex))%>%
+  mutate(pclass = as.factor(pclass)) %>%
+  mutate(Child = as.factor(Child))%>%
+  mutate(Embarked_S = as.factor(Embarked_S)) %>%
+  mutate(Embarked_C = as.factor(Embarked_C)) 
+model <- naiveBayes(survived ~ ., data = my_training)
+model
+```
+
+```{r}
+my_testing <- testing %>%
+  mutate(survived = as.factor(survived))%>%
+  mutate(sex = as.factor(sex))%>%
+  mutate(pclass = as.factor(pclass)) %>%
+  mutate(Child = as.factor(Child))%>%
+  mutate(Embarked_S = as.factor(Embarked_S)) %>%
+  mutate(Embarked_C = as.factor(Embarked_C)) 
+pred <- predict(model, my_testing)
+table(pred, my_testing$survived)
+```
+
+
+```{r}
+(test.results <- cbind(pred, my_testing))
+```
+
+```{r}
+test.results <- test.results %>%
+  mutate(pred = as.numeric(pred))
+pROC_obj <- roc(as.numeric(as.character(test.results$survived)), test.results$pred,
+            smoothed = TRUE,
+            ci=TRUE, ci.alpha=0.9, stratified=FALSE,
+            plot=TRUE, auc.polygon=TRUE, max.auc.polygon=TRUE, grid=TRUE,
+            print.auc=TRUE, show.thres=TRUE)
+```
+
+# Decision Tree
+
+```{r}
+library(rpart)
+library(rpart.plot)
+tree<- rpart(survived~., data = training, method = 'class')
+rpart.plot(tree)
+```
+
+```{r}
+dt_results <- predict(tree, testing[,-1], type = 'prob')
+head(model.results.dt <- cbind(testing,dt_results),500)
+```
+
+```{r}
+test.results2 <- test.results %>%
+  mutate(pred = ifelse(pred>=0.5,1,0))
+table(test.results2$pred, testing$survived)
+```
+
+
+```{r}
+pROC_obj <- roc(model.results.dt$survived,model.results.dt$`1`,
+            smoothed = TRUE,
+            # arguments for ci
+            ci=TRUE, ci.alpha=0.9, stratified=FALSE,
+            # arguments for plot
+            plot=TRUE, auc.polygon=TRUE, max.auc.polygon=TRUE, grid=TRUE,
+            print.auc=TRUE, show.thres=TRUE)
+```
+
+#Unterschiede der Performance und Erklärung
+
+Durch die Erhöhung der Anzahl der Variablen ist nun der Vector das beste Modell. Der AUC Wert ist in der Vector Variante nun am geringsten. Die Anzahl an Daten scheint für die Berechnung mit dem Vector Modell auszureichen. Naive Bayes ist durch die Hinzunahme der weiteren beiden Variablen (Dummy variablen) in der Berechnung nicht mehr auf der Genauigkeit von der Berechnung ohne die beiden Variablen. Der Decision Tree ist in der Transparenz zwar besser, aber der AUC Wert zeigt ebenfalls durch die Hinzunahme der weiteren Variablen ein deutlich schlechteres Ergebnis, als das Vector Model. Somit ist das Vector Model zu bevorzugen. 
+
+
